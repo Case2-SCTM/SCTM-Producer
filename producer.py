@@ -16,4 +16,5 @@ class Producer:
 
     def sendJsonMessage(self, topic, value):
         # produce json messages
+        print(f"Sent data to topic: {topic}")
         self._kafka.send(topic, value)

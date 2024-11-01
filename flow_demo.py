@@ -2,6 +2,7 @@ from requests import get, post
 from json import dumps
 from sink import Sink
 from producer import Producer
+from utils import unixIntSeconds
 
 
 class FlowDemo:
@@ -65,6 +66,7 @@ class FlowDemo:
 
     # Sorts data and sends it to the kafka server
     def getDistribution(self, sink: Sink):
+        print(f"Distribution ID: {sink._id}")
         data = sink.getHistory()
 
         snapshots = data["snapshots"]
@@ -74,16 +76,22 @@ class FlowDemo:
                 if snapshot["data_start_timestamp"] > sink._last_start_timestamp:
                     categories = snapshot["data"]["categories"]
                     for category in categories:
-                        message_data = {
-                            "sensor_name": data[""],
-                            "start_timestamp": snapshot["data_start_timestamp"],
-                            "end_timestamp": snapshot["data_end_timestamp"],
-                            "category": category["category"],
-                            "count": category["count"],
-                        }
-                        self._producer.sendJsonMessage(
-                            "data-distribution", message_data
-                        )
+                        count = int(category["count"])
+                        if count > 0:
+                            message_data = {
+                                "sensor_name": data["name"],
+                                "start_timestamp": unixIntSeconds(
+                                    snapshot["data_start_timestamp"]
+                                ),
+                                "end_timestamp": unixIntSeconds(
+                                    snapshot["data_end_timestamp"]
+                                ),
+                                "category": category["category"],
+                                "count": int(category["count"]),
+                            }
+                            self._producer.sendJsonMessage(
+                                "data-distribution", message_data
+                            )
                     sink._last_start_timestamp = snapshot["data_start_timestamp"]
 
     def getOriginDestination(self, sink):

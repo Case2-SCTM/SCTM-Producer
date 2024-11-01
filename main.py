@@ -1,6 +1,6 @@
-from schedule import Scheduler, run_pending, run_all
+from schedule import Scheduler
 from flow_demo import FlowDemo
-from threading import Thread
+from utils import run_thread
 from time import sleep
 import urllib3
 
@@ -9,10 +9,6 @@ urllib3.disable_warnings(urllib3.exceptions.InsecureRequestWarning)
 schedulers: list[Scheduler] = []
 
 
-def run_thread(func):
-    print("Run Thread!")
-    thread = Thread(target=func)
-    thread.start()
 
 
 def createSchedule(flow: FlowDemo):
@@ -36,8 +32,8 @@ if __name__ == "__main__":
     try:
         while True:
             sleep(2)  # Sleep 2 sec
-            # for schedule in schedulers:
-            #     schedule.run_pending()
+            for schedule in schedulers:
+                schedule.run_pending()
 
     except KeyboardInterrupt as e:
         print("Keyboard Interrupt!")
