@@ -27,7 +27,6 @@ def createSchedule(flow: FlowDemo):
     schedulers.append(schedule)
 
 
-
 if __name__ == "__main__":
     print("Script Startup!")
     flow = FlowDemo("localhost", 8088)

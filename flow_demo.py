@@ -1,6 +1,7 @@
 from requests import get, post
 from json import dumps
 from sink import Sink
+from producer import Producer
 
 
 class FlowDemo:
@@ -13,9 +14,13 @@ class FlowDemo:
         self._headers = None
         self._sinks = None
 
+        self._producer = Producer()
+
         self.setToken()
 
+    # Sets self._token and self._headers
     def setToken(self):
+        """Authorizes Flow Insights api with username and password."""
         url = self._url + "/users/auth"
         headers = {"Accept-Version": "2.0", "Content-Type": "application/json"}
         data = {"username": self._username, "password": self._password}
@@ -34,7 +39,9 @@ class FlowDemo:
 
         return response
 
+    # Sets self._sinks
     def setSinks(self):
+        """Creates list of sinks from the response to flow demo"""
         url = self._url + "/cubes/0/analytics/0/sinks"
 
         response = get(url, headers=self._headers, verify=False)
@@ -45,7 +52,9 @@ class FlowDemo:
 
         return response
 
+    # Returns sequence_number from flow demo
     def getSequenceNumber(self):
+        """FILL"""
         url = self._url + "/cubes/0/analytics/0"
 
         response = get(url, headers=self._headers, verify=False)
@@ -54,36 +63,33 @@ class FlowDemo:
 
         return data["sequence_number"]
 
+    # Sorts data and sends it to the kafka server
     def getDistribution(self, sink: Sink):
         data = sink.getHistory()
 
         snapshots = data["snapshots"]
 
-        results = []
         for snapshot in snapshots:
             if snapshot["data"]["data_validity"] == "ok":
                 if snapshot["data_start_timestamp"] > sink._last_start_timestamp:
                     categories = snapshot["data"]["categories"]
-
-                    results.append(
-                        {
+                    for category in categories:
+                        message_data = {
+                            "sensor_name": data[""],
                             "start_timestamp": snapshot["data_start_timestamp"],
                             "end_timestamp": snapshot["data_end_timestamp"],
-                            "data": categories,
+                            "category": category["category"],
+                            "count": category["count"],
                         }
-                    )
-
-        print(f"Sink {sink._id}")
-        print(data)
+                        self._producer.sendJsonMessage(
+                            "data-distribution", message_data
+                        )
+                    sink._last_start_timestamp = snapshot["data_start_timestamp"]
 
     def getOriginDestination(self, sink):
-        return
-        data = sink.getHistory()
+        pass
 
-        print(f"Sink {sink._id}")
-        print(data)
-
-    def getStatistical(self):
+    def getStatistical(self, sink):
         pass
 
     # Collects data from all sinks
@@ -93,7 +99,6 @@ class FlowDemo:
 
         sinks = self._sinks
         for sink in sinks:
-            print(sink._type)
             if sink._type == "distribution":
                 self.getDistribution(sink)
 
