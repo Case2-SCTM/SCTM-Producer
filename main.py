@@ -9,8 +9,6 @@ urllib3.disable_warnings(urllib3.exceptions.InsecureRequestWarning)
 schedulers: list[Scheduler] = []
 
 
-
-
 def createSchedule(flow: FlowDemo):
     global schedulers
     schedule = Scheduler()

@@ -67,19 +67,20 @@ class FlowDemo:
     # Sorts data and sends it to the kafka server
     def getDistribution(self, sink: Sink):
         print(f"Distribution ID: {sink._id}")
-        data = sink.getHistory()
+        history = sink.getHistory()
 
-        snapshots = data["snapshots"]
+        snapshots = history["snapshots"]
 
         for snapshot in snapshots:
-            if snapshot["data"]["data_validity"] == "ok":
+            data = snapshot["data"]
+            if data["data_validity"] == "ok":
                 if snapshot["data_start_timestamp"] > sink._last_start_timestamp:
-                    categories = snapshot["data"]["categories"]
+                    categories = data["categories"]
                     for category in categories:
                         count = int(category["count"])
                         if count > 0:
                             message_data = {
-                                "sensor_name": data["name"],
+                                "sensor_name": history["name"],
                                 "start_timestamp": unixIntSeconds(
                                     snapshot["data_start_timestamp"]
                                 ),
@@ -95,19 +96,38 @@ class FlowDemo:
                     sink._last_start_timestamp = snapshot["data_start_timestamp"]
 
     def getOriginDestination(self, sink: Sink):
-        print()
-        data = sink.getHistory()
+        print(f"Od Matrix ID: {sink._id}")
+        histroy = sink.getHistory()
 
-        snapshots = data["snapshots"]
+        snapshots = histroy["snapshots"]
 
         for snapshot in snapshots:
-            if snapshot["data"]["data_validity"] == "ok":
+            data = snapshot["data"]
+            if data["data_validity"] == "ok":
                 if snapshot["data_start_timestamp"] > sink._last_start_timestamp:
                     print()
 
+                    origins = data["origins"]
+                    destinations = data["destinations"]
 
+                    for movement in data["turning_movements"]:
+                        for a, entry in enumerate(origins):
+                            for b, exit in enumerate(destinations):
+                                if int(movement["data"][a][b]) > 0:
+                                    message = {
+                                        "category": movement["category"],
+                                        "entry": entry["name"],
+                                        "exit": exit["name"],
+                                        "count": int(movement["data"][a][b]),
+                                        "timestamp": unixIntSeconds(
+                                            snapshot["data_start_timestamp"]
+                                        ),
+                                    }
 
-        pass
+                                    self._producer.sendJsonMessage(
+                                        "data-odmatrix", message
+                                    )
+                    sink._last_start_timestamp = snapshot["data_start_snapshot"]
 
     def getStatistical(self, sink):
         pass
@@ -120,7 +140,8 @@ class FlowDemo:
         sinks = self._sinks
         for sink in sinks:
             if sink._type == "distribution":
-                self.getDistribution(sink)
+                print()
+                # self.getDistribution(sink)
 
-            # elif sink._type == "od_matrix":
-            #     self.getOriginDestination(sink)
+            elif sink._type == "od_matrix":
+                self.getOriginDestination(sink)
