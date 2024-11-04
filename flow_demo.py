@@ -94,7 +94,19 @@ class FlowDemo:
                             )
                     sink._last_start_timestamp = snapshot["data_start_timestamp"]
 
-    def getOriginDestination(self, sink):
+    def getOriginDestination(self, sink: Sink):
+        print()
+        data = sink.getHistory()
+
+        snapshots = data["snapshots"]
+
+        for snapshot in snapshots:
+            if snapshot["data"]["data_validity"] == "ok":
+                if snapshot["data_start_timestamp"] > sink._last_start_timestamp:
+                    print()
+
+
+
         pass
 
     def getStatistical(self, sink):
