@@ -129,7 +129,7 @@ class FlowDemo:
                     sink._last_start_timestamp = snapshot["data_start_snapshot"]
 
     def getStatistical(self, sink: Sink):
-        print(f"")
+        print(f"Statistical ID: {sink._id}")
 
         history = sink.getHistory()
 
