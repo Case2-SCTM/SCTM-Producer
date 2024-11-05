@@ -126,7 +126,7 @@ class FlowDemo:
                                     self._producer.sendJsonMessage(
                                         "data-odmatrix", message
                                     )
-                    sink._last_start_timestamp = snapshot["data_start_snapshot"]
+                    sink._last_start_timestamp = snapshot["data_start_timestamp"]
 
     def getStatistical(self, sink: Sink):
         print(f"Statistical ID: {sink._id}")
