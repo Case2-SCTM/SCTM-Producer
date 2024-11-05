@@ -151,8 +151,7 @@ class FlowDemo:
         sinks = self._sinks
         for sink in sinks:
             if sink._type == "distribution":
-                print()
-                # self.getDistribution(sink)
+                self.getDistribution(sink)
 
             elif sink._type == "od_matrix":
                 self.getOriginDestination(sink)
